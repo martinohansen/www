@@ -4,6 +4,8 @@ set -euo pipefail
 HEAD="_templates/head.html"
 NAV="_templates/nav.html"
 POST_METADATA_FILTER="_filters/page-metadata.lua"
+# Standalone tools are built separately from the Pandoc pages below.
+SITEMAP_PATHS=(fireberegner/index.html realkreditberegner/index.html)
 
 page() {
     local src=$1 out=$2 title=$3 page=$4
@@ -17,6 +19,7 @@ page() {
         --include-in-header="$HEAD" \
         --include-before-body="$NAV" \
         --output="$out"
+    SITEMAP_PATHS+=("$out")
 }
 
 # Pages
@@ -37,4 +40,20 @@ while IFS= read -r md; do
         --include-in-header="$HEAD" \
         --include-before-body="$NAV" \
         --output="$out"
+    SITEMAP_PATHS+=("$out")
 done < <(find blog -name "*.md")
+
+# Publish the sitemap only after all pages have built successfully.
+sitemap_tmp=$(mktemp sitemap.xml.XXXXXX)
+trap 'rm -f "$sitemap_tmp"' EXIT
+{
+    printf '<?xml version="1.0" encoding="UTF-8"?>\n'
+    printf '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    for path in "${SITEMAP_PATHS[@]}"; do
+        url="https://heymartin.net/${path%index.html}"
+        escaped_url=$(printf '%s' "$url" | sed 's/\&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+        printf '  <url><loc>%s</loc></url>\n' "$escaped_url"
+    done
+    printf '</urlset>\n'
+} > "$sitemap_tmp"
+mv "$sitemap_tmp" sitemap.xml

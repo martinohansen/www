@@ -1,6 +1,7 @@
 .claude/**
 
 # Generated files
+/sitemap.xml
 /index.html
 blog/**/*.html
 photos/index.html
