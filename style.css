@@ -188,6 +188,17 @@ article {
   max-width: 60ch;
 }
 
+article > .subtitle {
+  font-style: italic;
+}
+
+article > .subtitle + p::first-letter {
+  float: left;
+  font-size: 3.4em;
+  line-height: 0.85;
+  margin: 0.08em 0.12em 0 0;
+}
+
 .post-meta {
   font-size: 0.85rem;
   color: var(--muted);
