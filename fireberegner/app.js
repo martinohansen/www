@@ -69,6 +69,12 @@
   const applyPlanCodeButton = document.querySelector("#apply-plan-code");
   const planCodeError = document.querySelector("#plan-code-error");
   const planCodeStatus = document.querySelector("#plan-code-status");
+  const storePlanForm = document.querySelector("#store-plan-form");
+  const storedPlanName = document.querySelector("#stored-plan-name");
+  const storedPlansList = document.querySelector("#stored-plans");
+  const storedPlansEmpty = document.querySelector("#stored-plans-empty");
+  const storedPlansStatus = document.querySelector("#stored-plans-status");
+  const storePlanError = document.querySelector("#store-plan-error");
   const { calculateFire, optimizeAnnualContributions } =
     window.FireCalculations;
   const { encodePlan, decodePlan } = window.FirePlanCode;
@@ -345,6 +351,155 @@
     copyPlanCodeStatus.hidden = !message;
   }
 
+  // Saved plans hold plan codes instead of raw inputs, so loading one uses
+  // the same validation and version checks as a pasted code.
+  const STORED_PLANS_KEY = "fireberegner.storedPlans";
+  const storedPlanDateFormat = new Intl.DateTimeFormat("da-DK", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+
+  function setStoredPlansStatus(message) {
+    storedPlansStatus.textContent = message;
+    storedPlansStatus.hidden = !message;
+  }
+
+  function setStorePlanError(message) {
+    storePlanError.textContent = message;
+    storePlanError.hidden = !message;
+  }
+
+  function readStoredPlans() {
+    try {
+      const plans = JSON.parse(localStorage.getItem(STORED_PLANS_KEY));
+      return Array.isArray(plans)
+        ? plans.filter(
+            (plan) =>
+              typeof plan?.name === "string" && typeof plan?.code === "string",
+          )
+        : [];
+    } catch (_error) {
+      return [];
+    }
+  }
+
+  function writeStoredPlans(plans) {
+    try {
+      localStorage.setItem(STORED_PLANS_KEY, JSON.stringify(plans));
+      return true;
+    } catch (_error) {
+      return false;
+    }
+  }
+
+  const STORAGE_BLOCKED = "Browseren tillader ikke, at input bliver gemt.";
+
+  function renderStoredPlans() {
+    const plans = readStoredPlans();
+    storedPlansEmpty.hidden = plans.length > 0;
+    storedPlansList.replaceChildren(
+      ...plans.map((plan) => {
+        const item = document.createElement("li");
+        item.className = "stored-plan";
+
+        const details = document.createElement("div");
+        details.className = "stored-plan-details";
+        const name = document.createElement("strong");
+        name.textContent = plan.name;
+        const savedAt = document.createElement("span");
+        const date = new Date(plan.savedAt);
+        savedAt.textContent = Number.isNaN(date.getTime())
+          ? ""
+          : `Gemt ${storedPlanDateFormat.format(date)}`;
+        details.append(name, savedAt);
+
+        const loadButton = document.createElement("button");
+        loadButton.type = "button";
+        loadButton.className = "plan-code-primary-action";
+        loadButton.textContent = "Indlæs";
+        loadButton.setAttribute("aria-label", `Indlæs ${plan.name}`);
+        loadButton.addEventListener("click", () => loadStoredPlan(plan));
+
+        const deleteButton = document.createElement("button");
+        deleteButton.type = "button";
+        deleteButton.className = "stored-plan-delete";
+        deleteButton.textContent = "Slet";
+        deleteButton.setAttribute("aria-label", `Slet ${plan.name}`);
+        deleteButton.addEventListener("click", () => deleteStoredPlan(plan));
+
+        item.append(details, loadButton, deleteButton);
+        return item;
+      }),
+    );
+  }
+
+  function storeCurrentPlan(event) {
+    event.preventDefault();
+    setStorePlanError("");
+    setCopyPlanCodeStatus("");
+    const name = storedPlanName.value.trim();
+
+    if (!name) {
+      setStorePlanError("Giv dine input et navn, før du gemmer dem.");
+      storedPlanName.focus();
+      return;
+    }
+
+    let code;
+    try {
+      const inputs = readInputs();
+      calculateFire(inputs);
+      code = encodePlan(inputs);
+    } catch (error) {
+      setStorePlanError(error.message);
+      return;
+    }
+
+    const plans = readStoredPlans();
+    const replaced = plans.some((plan) => plan.name === name);
+    const others = plans.filter((plan) => plan.name !== name);
+    const stored = { name, code, savedAt: new Date().toISOString() };
+
+    if (writeStoredPlans([stored, ...others])) {
+      storedPlanName.value = "";
+      renderStoredPlans();
+      setCopyPlanCodeStatus(
+        replaced ? `${name} er opdateret.` : `${name} er gemt.`,
+      );
+    } else {
+      setStorePlanError(STORAGE_BLOCKED);
+    }
+  }
+
+  function loadStoredPlan(plan) {
+    setPlanCodeError("");
+
+    try {
+      applyPlanCode(plan.code);
+      setPlanCodeStatus(`${plan.name} er indlæst.`);
+    } catch (error) {
+      setPlanCodeError(error.message);
+    }
+  }
+
+  function deleteStoredPlan(plan) {
+    if (!window.confirm(`Vil du slette ${plan.name}?`)) {
+      return;
+    }
+
+    setPlanCodeError("");
+    const plans = readStoredPlans().filter(
+      (stored) => stored.name !== plan.name,
+    );
+    if (writeStoredPlans(plans)) {
+      renderStoredPlans();
+      setStoredPlansStatus(`${plan.name} er slettet.`);
+      (storedPlansList.querySelector("button") ?? storedPlanName).focus();
+    } else {
+      setPlanCodeError(STORAGE_BLOCKED);
+    }
+  }
+
   function formatPlanPercentage(value) {
     return String(Number((value * 100).toFixed(10)));
   }
@@ -362,6 +517,10 @@
     setPlanCodeStatus("");
     setPlanCodeError("");
     setCopyPlanCodeStatus("");
+    setStoredPlansStatus("");
+    setStorePlanError("");
+    storedPlanName.value = "";
+    renderStoredPlans();
     planCodeInput.value = "";
     savedPlanCode.value = "";
     copyPlanCodeButton.disabled = true;
@@ -374,10 +533,11 @@
 
     planCodeDialog.showModal();
     window.requestAnimationFrame(() => {
-      if (mode === "save" && savedPlanCode.value) {
-        copyPlanCodeButton.focus();
+      const firstStoredPlan = storedPlansList.querySelector("button");
+      if (mode === "save") {
+        storedPlanName.focus();
       } else if (mode === "load") {
-        planCodeInput.focus();
+        (firstStoredPlan ?? planCodeInput).focus();
       } else {
         closePlanCodeDialogButton.focus();
       }
@@ -449,14 +609,18 @@
     update();
   }
 
+  function applyPlanCode(code) {
+    const inputs = decodePlan(code);
+    calculateFire(inputs);
+    applyPlanInputs(inputs);
+    closePlanCodeDialog();
+  }
+
   function loadPlanCode() {
     setPlanCodeError("");
 
     try {
-      const inputs = decodePlan(planCodeInput.value);
-      calculateFire(inputs);
-      applyPlanInputs(inputs);
-      closePlanCodeDialog();
+      applyPlanCode(planCodeInput.value);
       setPlanCodeStatus("Input indlæst.");
     } catch (error) {
       setPlanCodeError(error.message);
@@ -1718,6 +1882,7 @@
   );
   copyPlanCodeButton.addEventListener("click", copySavedPlanCode);
   applyPlanCodeButton.addEventListener("click", loadPlanCode);
+  storePlanForm.addEventListener("submit", storeCurrentPlan);
   planCodeDialog.addEventListener("click", (event) => {
     if (event.target === planCodeDialog) {
       closePlanCodeDialog();

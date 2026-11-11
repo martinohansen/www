@@ -1326,15 +1326,19 @@
         </header>
 
         <p id="plan-code-privacy" class="plan-code-privacy">
-          Koden indeholder dine økonomiske oplysninger. Den bliver hverken
-          sendt eller gemt på serveren.
+          Input og koder indeholder dine økonomiske oplysninger. De bliver
+          hverken sendt eller gemt på serveren. Gemte input ligger kun i denne
+          browser.
         </p>
 
         <section class="plan-code-section" aria-labelledby="saved-code-label">
           <div class="plan-code-section-heading">
             <div>
               <h3 id="saved-code-label">Kode for dine nuværende input</h3>
-              <p>Gem koden et sikkert sted, så du kan bruge den senere.</p>
+              <p>
+                Gem input i denne browser med et navn, eller kopiér koden og
+                gem den et sikkert sted.
+              </p>
             </div>
             <p
               id="copy-plan-code-status"
@@ -1352,7 +1356,27 @@
             spellcheck="false"
             aria-labelledby="saved-code-label"
           ></textarea>
-          <div class="plan-code-section-actions">
+          <form
+            id="store-plan-form"
+            class="plan-code-section-actions stored-plan-form"
+          >
+            <input
+              id="stored-plan-name"
+              class="stored-plan-name"
+              type="text"
+              maxlength="60"
+              autocomplete="off"
+              placeholder="Navn, fx Basisplan"
+              aria-label="Navn på gemte input"
+              required
+            />
+            <button
+              id="store-plan"
+              class="plan-code-primary-action"
+              type="submit"
+            >
+              Gem
+            </button>
             <button
               id="copy-plan-code"
               class="plan-code-primary-action"
@@ -1360,16 +1384,34 @@
             >
               Kopiér kode
             </button>
-          </div>
+          </form>
+          <p id="store-plan-error" class="plan-code-error" role="alert" hidden></p>
         </section>
 
         <section class="plan-code-section" aria-labelledby="load-code-label">
           <div class="plan-code-section-heading">
             <div>
-              <h3 id="load-code-label">Indlæs gemte input</h3>
-              <p>Indsæt en kode for at erstatte formularens input.</p>
+              <h3 id="load-code-label">Indlæs input</h3>
+              <p>
+                Vælg input, der er gemt i denne browser, eller indsæt en kode.
+              </p>
             </div>
+            <p
+              id="stored-plans-status"
+              class="plan-code-inline-status"
+              role="status"
+              aria-live="polite"
+              hidden
+            ></p>
           </div>
+          <p id="stored-plans-empty" class="stored-plans-empty">
+            Du har ikke gemt nogen input i denne browser endnu.
+          </p>
+          <ul
+            id="stored-plans"
+            class="stored-plans"
+            aria-label="Input gemt i denne browser"
+          ></ul>
           <textarea
             id="plan-code-input"
             class="plan-code-value"
@@ -1396,6 +1438,6 @@
     <script src="./life-annuity.js?v=20260905-2"></script>
     <script src="./calculations.js?v=20260905-3"></script>
     <script src="./plan-code.js?v=20260905-1"></script>
-    <script src="./app.js?v=20260905-3"></script>
+    <script src="./app.js?v=20261111-2"></script>
   </body>
 </html>
