@@ -50,7 +50,7 @@ while IFS= read -r md; do
 done < <(find blog -name "*.md")
 
 # Publish the sitemap only after all pages have built successfully.
-sitemap_tmp=$(mktemp sitemap.xml.XXXXXX)
+sitemap_tmp=sitemap.xml.tmp
 trap 'rm -f "$sitemap_tmp"' EXIT
 {
     printf '<?xml version="1.0" encoding="UTF-8"?>\n'
