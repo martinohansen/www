@@ -8,7 +8,7 @@ POST_METADATA_FILTER="_filters/page-metadata.lua"
 SITEMAP_PATHS=(fireberegner/index.html realkreditberegner/index.html)
 
 page() {
-    local src=$1 out=$2 title=$3 page=$4
+    local src=$1 out=$2 title=$3 page=$4 description=$5
     echo "$out"
     mkdir -p "$(dirname "$out")"
     pandoc "$src" \
@@ -16,6 +16,7 @@ page() {
         --template="_templates/page.html" \
         --metadata title="$title" \
         --metadata page="$page" \
+        --metadata description="$description" \
         --include-in-header="$HEAD" \
         --include-before-body="$NAV" \
         --output="$out"
@@ -23,11 +24,16 @@ page() {
 }
 
 # Pages
-page _pages/home.html index.html "Home" home
-page _pages/blog.html blog/index.html "Blog" blog
-page _pages/photos.html photos/index.html "Photos" photos
-page _pages/tools.html tools/index.html "Tools" tools
-page _pages/lightning.html lightning/index.html "Lightning node" lightning
+page _pages/home.html index.html "Home" home \
+    "Martin Hansen's personal website with a blog, photos and free Danish calculators for FIRE planning and mortgages."
+page _pages/blog.html blog/index.html "Blog" blog \
+    "Blog posts by Martin Hansen, writing about life as it happens."
+page _pages/photos.html photos/index.html "Photos" photos \
+    "Travel photos by Martin Hansen."
+page _pages/tools.html tools/index.html "Tools" tools \
+    "Free tools by Martin Hansen: a Danish FIRE calculator, a Danish mortgage calculator, a Firefox add-on and a YNAB bank sync."
+page _pages/lightning.html lightning/index.html "Lightning node" lightning \
+    "Connection addresses for thunderf, a Bitcoin Lightning routing node run by Martin Hansen."
 
 # Posts
 while IFS= read -r md; do

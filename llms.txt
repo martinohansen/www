@@ -1,0 +1,14 @@
+# heymartin.net
+
+> Personal website of Martin Hansen. It has a blog, photos and two free calculators for Danish personal finance. The calculators are in Danish, run in the browser and need no sign-up.
+
+## Tools
+
+- [FIRE-beregner](https://heymartin.net/fireberegner/): Danish FIRE (Financial Independence, Retire Early) calculator. It shows when you can stop working and follows savings and withdrawals year by year. It models Danish pension and tax rules, including ratepension, livrente, aldersopsparing, aktiesparekonto (ASK) and frie midler.
+- [Realkreditberegner](https://heymartin.net/realkreditberegner/): Danish mortgage calculator. It compares interest, bidrag (administration margin) and skatteværdi (tax value of interest) across loan-to-value bands. It also tests if an interest-only loan with the difference invested would have paid off against historical stock returns.
+
+## Pages
+
+- [Tools](https://heymartin.net/tools/): All tools, including a Firefox add-on and a YNAB bank sync.
+- [Blog](https://heymartin.net/blog/): Blog posts.
+- [Lightning node](https://heymartin.net/lightning/): Connection addresses for thunderf, a Bitcoin Lightning routing node.
